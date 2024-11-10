@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "Auto Form Filler",
+    "description": "An intelligent Chrome extension to auto-fill job application and other forms with customizable options.",
+    "version": "1.0",
+    "permissions": [
+      "storage",
+      "activeTab",
+      "scripting"
+    ],
+    "host_permissions": [
+      "*://*/*"
+    ],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"],
+        "css": ["styles.css"]
+      }
+    ]
+  }
+  
