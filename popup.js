@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveFieldsButton = document.getElementById("save-fields");
     const newKeyInput = document.getElementById("new-key");
     const newValueInput = document.getElementById("new-value");
+    const unsavedIndicator = document.getElementById("unsaved-indicator");
+
+    let unsavedChanges = false;
 
     // Load fields from storage
     chrome.storage.local.get(["customFields"], (result) => {
@@ -19,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
             addFieldToUI(key, value);
             newKeyInput.value = "";
             newValueInput.value = "";
+            markUnsaved();
         }
     });
 
@@ -33,6 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         chrome.storage.local.set({ customFields: fields }, () => {
             alert("Fields saved successfully!");
+            unsavedChanges = false;
+            updateUnsavedIndicator();
         });
     });
 
@@ -58,11 +64,30 @@ document.addEventListener("DOMContentLoaded", () => {
         deleteButton.style.width = "30px";
         deleteButton.addEventListener("click", () => {
             fieldsContainer.removeChild(div);
+            markUnsaved();
         });
+
+        keyInput.addEventListener("input", markUnsaved);
+        valueInput.addEventListener("input", markUnsaved);
 
         div.appendChild(keyInput);
         div.appendChild(valueInput);
         div.appendChild(deleteButton);
         fieldsContainer.appendChild(div);
     }
-});
+
+    // Mark changes as unsaved
+    function markUnsaved() {
+        unsavedChanges = true;
+        updateUnsavedIndicator();
+    }
+
+    // Update the unsaved changes indicator
+    function updateUnsavedIndicator() {
+        if (unsavedChanges) {
+            unsavedIndicator.style.display = "block";
+        } else {
+            unsavedIndicator.style.display = "none";
+        }
+    }
+});  

@@ -19,3 +19,9 @@ button {
 .field input {
   margin-right: 5px;
 }
+
+#unsaved-indicator {
+  color: red;
+  font-size: 0.9em;
+  display: none;
+}
