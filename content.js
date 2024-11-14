@@ -14,7 +14,17 @@ function extractLinkedInData() {
     if (headlineElement) {
         data.headline = headlineElement.textContent.trim();
     }
-    
+
+    // Extract about section
+    const aboutElement = document.querySelector(
+        "#profile-content > div > div.scaffold-layout.scaffold-layout--breakpoint-none.scaffold-layout--main-aside.scaffold-layout--single-column.scaffold-layout--reflow.pv-profile.pvs-loader-wrapper__shimmer--animate > div > div > main > section:nth-child(4) > div.display-flex.ph5.pv3 > div > div > div > span:nth-child(1)"
+    );
+    if (aboutElement) {
+        console.log(aboutElement)
+        data.about = aboutElement.innerText
+    }
+
+    console.log(data)
     return data;
 }
 
