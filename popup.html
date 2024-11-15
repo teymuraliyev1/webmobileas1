@@ -10,13 +10,25 @@
 
 <body>
     <h2>Customizable Data Fields</h2>
-    <div id="unsaved-indicator">⚠️ Unsaved Changes</div>
+
+    <!-- Profile Selector -->
+    <div class="profile-section">
+        <label for="profile-selector">Profile:</label>
+        <select id="profile-selector"></select>
+        <button id="new-profile-button">New Profile</button>
+        <button id="delete-profile-button">Delete Profile</button>
+    </div>
+
+    <!-- Fields Container -->
     <div id="fields-container"></div>
+
+    <!-- Add New Field -->
     <div class="field">
         <input type="text" id="new-key" placeholder="Key (e.g., name)" />
         <input type="text" id="new-value" placeholder="Value (e.g., Joe)" />
         <button id="add-field">Add Field</button>
     </div>
+
     <script src="popup.js"></script>
 </body>
 
