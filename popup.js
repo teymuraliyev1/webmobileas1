@@ -3,14 +3,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const addFieldButton = document.getElementById("add-field");
     const newKeyInput = document.getElementById("new-key");
     const newValueInput = document.getElementById("new-value");
+    const profileSelector = document.getElementById("profile-selector");
+    const newProfileButton = document.getElementById("new-profile-button");
+    const deleteProfileButton = document.getElementById("delete-profile-button");
 
-    // Load fields from storage
-    chrome.storage.local.get(["customFields"], (result) => {
-        const fields = result.customFields || [];
-        fields.forEach(({ key, value }) => addFieldToUI(key, value));
+    let currentProfile = "default";
+
+    chrome.storage.local.get(["profiles"], (result) => {
+        const profiles = result.profiles || { default: [] };
+        populateProfileSelector(Object.keys(profiles));
+        currentProfile = profileSelector.value || "default";
+        loadFieldsForProfile(currentProfile, profiles);
     });
 
-    // Add a new key-value field
     addFieldButton.addEventListener("click", () => {
         const key = newKeyInput.value.trim();
         const value = newValueInput.value.trim();
@@ -22,91 +27,129 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Add a field to the UI
+    newProfileButton.addEventListener("click", () => {
+        const profileName = prompt("Enter new profile name:");
+        if (profileName) {
+            chrome.storage.local.get(["profiles"], (result) => {
+                const profiles = result.profiles || {};
+                profiles[profileName] = [];
+                chrome.storage.local.set({ profiles }, () => {
+                    populateProfileSelector(Object.keys(profiles));
+                    profileSelector.value = profileName;
+                    currentProfile = profileName;
+                    fieldsContainer.innerHTML = "";
+                });
+            });
+        }
+    });
+
+    deleteProfileButton.addEventListener("click", () => {
+        if (currentProfile === "default") {
+            alert("Default profile cannot be deleted.");
+            return;
+        }
+        chrome.storage.local.get(["profiles"], (result) => {
+            const profiles = result.profiles || {};
+            delete profiles[currentProfile];
+            chrome.storage.local.set({ profiles }, () => {
+                populateProfileSelector(Object.keys(profiles));
+                currentProfile = "default";
+                profileSelector.value = currentProfile;
+                fieldsContainer.innerHTML = "";
+                loadFieldsForProfile(currentProfile, profiles);
+            });
+        });
+    });
+
+    profileSelector.addEventListener("change", () => {
+        currentProfile = profileSelector.value;
+        chrome.storage.local.get(["profiles"], (result) => {
+            const profiles = result.profiles || {};
+            fieldsContainer.innerHTML = "";
+            loadFieldsForProfile(currentProfile, profiles);
+        });
+    });
+
     function addFieldToUI(key, value) {
         const div = document.createElement("div");
         div.classList.add("field");
 
-        // Key input (disabled, non-editable initially)
         const keyInput = document.createElement("input");
         keyInput.type = "text";
         keyInput.classList.add("key");
-        keyInput.placeholder = "Key";
         keyInput.value = key;
         keyInput.disabled = true;
 
-        // Value input (editable)
         const valueInput = document.createElement("input");
         valueInput.type = "text";
         valueInput.classList.add("value");
-        valueInput.placeholder = "Value";
         valueInput.value = value;
         valueInput.disabled = true;
 
-        // Edit button
         const editButton = document.createElement("button");
         editButton.textContent = "✏️";
-        editButton.title = "Edit";
         editButton.addEventListener("click", () => {
             if (keyInput.disabled && valueInput.disabled) {
-                // Enable editing
                 keyInput.disabled = false;
                 valueInput.disabled = false;
-                editButton.textContent = "✔️"; // Change to Save icon
-                editButton.title = "Save";
+                editButton.textContent = "✔️";
             } else {
-                // Disable editing and save changes to storage
                 keyInput.disabled = true;
                 valueInput.disabled = true;
-                editButton.textContent = "✏️"; // Change back to Edit icon
-                editButton.title = "Edit";
-                saveFieldsToStorage(); // Save updated fields
+                editButton.textContent = "✏️";
+                saveFieldsToStorage();
             }
         });
 
-        // Delete button
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "❌";
-        deleteButton.title = "Delete";
-        deleteButton.style.marginLeft = "5px";
         deleteButton.addEventListener("click", () => {
             fieldsContainer.removeChild(div);
-            saveFieldsToStorage(); // Save updated fields after deletion
+            saveFieldsToStorage();
         });
 
-        // Append elements to the field div
         div.appendChild(keyInput);
         div.appendChild(valueInput);
         div.appendChild(editButton);
         div.appendChild(deleteButton);
-
-        // Add the field div to the container
         fieldsContainer.appendChild(div);
     }
 
-    // Save all fields to local storage
     function saveFieldsToStorage() {
         const fields = Array.from(fieldsContainer.children).map((div) => {
-            const key = div.querySelector(".key").value.trim();
-            const value = div.querySelector(".value").value.trim();
-            return { key, value };
+            return {
+                key: div.querySelector(".key").value.trim(),
+                value: div.querySelector(".value").value.trim(),
+            };
         });
-
-        chrome.storage.local.set({ customFields: fields }, () => {
-            console.log("Fields saved successfully!");
+        chrome.storage.local.get(["profiles"], (result) => {
+            const profiles = result.profiles || {};
+            profiles[currentProfile] = fields;
+            chrome.storage.local.set({ profiles });
         });
     }
 
-    // Extract LinkedIn Data Section
+    function loadFieldsForProfile(profile, profiles) {
+        const fields = profiles[profile] || [];
+        fields.forEach(({ key, value }) => addFieldToUI(key, value));
+    }
+
+    function populateProfileSelector(profileNames) {
+        profileSelector.innerHTML = "";
+        profileNames.forEach((name) => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            profileSelector.appendChild(option);
+        });
+    }
+
     const extractButton = document.createElement("button");
     extractButton.textContent = "Extract from LinkedIn";
     extractButton.style.marginTop = "10px";
-
-    // Append the button to the UI
     document.body.appendChild(extractButton);
 
     extractButton.addEventListener("click", () => {
-        // Send a message to the content script
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const activeTab = tabs[0];
             chrome.tabs.sendMessage(
@@ -114,14 +157,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 { action: "extractLinkedInData" },
                 (response) => {
                     if (response) {
-                        // Clear existing fields to avoid duplicates
                         fieldsContainer.innerHTML = "";
-
-                        // Populate fields with extracted data
                         Object.entries(response).forEach(([key, value]) => {
                             addFieldToUI(key, value);
                         });
-
                         saveFieldsToStorage();
                     } else {
                         alert("Failed to extract LinkedIn data. Ensure you're on a LinkedIn profile page.");
