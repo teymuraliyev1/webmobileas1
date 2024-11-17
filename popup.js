@@ -132,6 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadFieldsForProfile(profile, profiles) {
         const fields = profiles[profile] || [];
         fields.forEach(({ key, value }) => addFieldToUI(key, value));
+        console.log(fields)
+        populateMappingFields(fields)
     }
 
     function populateProfileSelector(profileNames) {
@@ -162,6 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             addFieldToUI(key, value);
                         });
                         saveFieldsToStorage();
+                        populateMappingFields(response)
                     } else {
                         alert("Failed to extract LinkedIn data. Ensure you're on a LinkedIn profile page.");
                     }
@@ -169,4 +172,17 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         });
     });
+
+    function populateMappingFields(linkedinData) {
+        if(!linkedinData) return;
+        const selector = document.getElementById("linkedin-field-selector");
+        selector.innerHTML = '<option value="" disabled>Select LinkedIn Field</option>';
+        linkedinData.forEach((field) => {
+            const option = document.createElement("option");
+            option.value = field.key;
+            option.textContent = field.key;
+            selector.appendChild(option);
+        });
+    }
+    
 });
