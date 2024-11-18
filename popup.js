@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteProfileButton = document.getElementById("delete-profile-button");
 
     let currentProfile = "default";
+    loadMappings()
 
     chrome.storage.local.get(["profiles"], (result) => {
         const profiles = result.profiles || { default: [] };
@@ -174,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function populateMappingFields(linkedinData) {
-        if(!linkedinData) return;
+        if (!linkedinData) return;
         const selector = document.getElementById("linkedin-field-selector");
         selector.innerHTML = '<option value="" disabled>Select LinkedIn Field</option>';
         linkedinData.forEach((field) => {
@@ -184,5 +185,53 @@ document.addEventListener("DOMContentLoaded", () => {
             selector.appendChild(option);
         });
     }
-    
+
+    document.getElementById("add-mapping").addEventListener("click", () => {
+        const linkedinField = document.getElementById("linkedin-field-selector").value;
+        const formFieldName = document.getElementById("form-field-name").value.trim();
+
+        if (linkedinField && formFieldName) {
+            addMappingToUI(linkedinField, formFieldName);
+            saveMappingsToStorage();
+        }
+    });
+
+    function addMappingToUI(linkedinField, formFieldName) {
+        const container = document.getElementById("mapping-container");
+
+        const div = document.createElement("div");
+        div.classList.add("mapping-item");
+
+        const mappingText = document.createElement("span");
+        mappingText.textContent = `${linkedinField} → ${formFieldName}`;
+        div.appendChild(mappingText);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "❌";
+        deleteButton.addEventListener("click", () => {
+            container.removeChild(div);
+            saveMappingsToStorage();
+        });
+        div.appendChild(deleteButton);
+
+        container.appendChild(div);
+    }
+
+    function saveMappingsToStorage() {
+        const mappings = Array.from(document.querySelectorAll(".mapping-item span")).map((span) => {
+            const [linkedinField, formFieldName] = span.textContent.split(" → ");
+            return { linkedinField, formFieldName };
+        });
+        chrome.storage.local.set({ fieldMappings: mappings });
+    }
+
+    function loadMappings() {
+        chrome.storage.local.get(["fieldMappings"], (result) => {
+            const mappings = result.fieldMappings || [];
+            mappings.forEach(({ linkedinField, formFieldName }) => {
+                addMappingToUI(linkedinField, formFieldName);
+            });
+        });
+    }
+
 });

@@ -20,8 +20,8 @@ button {
   margin-right: 5px;
 }
 
-#unsaved-indicator {
-  color: red;
-  font-size: 0.9em;
-  display: none;
+.mapping-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  align-items: center;
 }
