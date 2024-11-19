@@ -133,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadFieldsForProfile(profile, profiles) {
         const fields = profiles[profile] || [];
         fields.forEach(({ key, value }) => addFieldToUI(key, value));
-        console.log(fields)
         populateMappingFields(fields)
     }
 
@@ -227,11 +226,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function loadMappings() {
         chrome.storage.local.get(["fieldMappings"], (result) => {
-            const mappings = result.fieldMappings || [];
-            mappings.forEach(({ linkedinField, formFieldName }) => {
+            const mappingFields = result.fieldMappings || [];
+            mappingFields.forEach(({ linkedinField, formFieldName }) => {
                 addMappingToUI(linkedinField, formFieldName);
             });
         });
     }
 
+    const autofillButton = document.getElementById("autofillButton")
+    autofillButton.addEventListener("click", () => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const activeTab = tabs[0];
+            chrome.tabs.sendMessage(activeTab.id, { action: "applyMappings", currentProfile });
+        });
+    });
 });
