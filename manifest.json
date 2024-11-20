@@ -27,5 +27,8 @@
         "content.js"
       ]
     }
-  ]
+  ],
+  "chrome_url_overrides": {
+    "newtab": "dashboard.html"
+  }
 }

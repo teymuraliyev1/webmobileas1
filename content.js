@@ -28,7 +28,6 @@ function extractLinkedInData() {
 function applyMappingsToForm(mappings, linkedinData) {
     mappings.forEach(({ linkedinField, formFieldName }) => {
         const linkedInFieldData = linkedinData.find(({ key }) => key === linkedinField);
-
         if (linkedInFieldData) {
             const { value } = linkedInFieldData;
             const formField = document.querySelector(`[name="${formFieldName}"]`);
@@ -54,7 +53,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     if (message.action === "applyMappings") {
         chrome.storage.local.get(["fieldMappings", "profiles"], (result) => {
-            console.log(result.fieldMappings, result.profiles[message.currentProfile])
             applyMappingsToForm(result.fieldMappings, result.profiles[message.currentProfile]);
         })
     }
