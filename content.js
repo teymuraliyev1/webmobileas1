@@ -56,4 +56,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             applyMappingsToForm(result.fieldMappings, result.profiles[message.currentProfile]);
         })
     }
-})
+    if (message.action === "extractJobDetails") {
+        const company = document.querySelector(".company-name-selector")?.textContent.trim();
+        const jobTitle = document.querySelector(".job-title-selector")?.textContent.trim();
+
+        sendResponse({
+            company: company || "Unknown Company",
+            jobTitle: jobTitle || "Unknown Job Title",
+        });
+    }
+});

@@ -240,4 +240,40 @@ document.addEventListener("DOMContentLoaded", () => {
             chrome.tabs.sendMessage(activeTab.id, { action: "applyMappings", currentProfile });
         });
     });
+
+    function trackJobApplication(company, jobTitle) {
+        const applicationData = {
+            company: company || prompt("Enter the company name:"),
+            jobTitle: jobTitle || prompt("Enter the job title:"),
+            dateApplied: new Date().toISOString().split("T")[0],
+            status: "Pending",
+        };
+
+        if (applicationData.company && applicationData.jobTitle) {
+            chrome.storage.local.get(["applications"], (result) => {
+                const applications = result.applications || [];
+                applications.push(applicationData);
+                chrome.storage.local.set({ applications }, () => {
+                    console.log("Job application tracked:", applicationData);
+                });
+            });
+        }
+    }
+
+    document.getElementById("track-job").addEventListener("click", () => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const activeTab = tabs[0];
+            chrome.tabs.sendMessage(
+                activeTab.id,
+                { action: "extractJobDetails" },
+                (response) => {
+                    if (response) {
+                        trackJobApplication(response.company, response.jobTitle);
+                    } else {
+                        alert("Failed to extract job details. Ensure you're on a valid job application page.");
+                    }
+                }
+            );
+        });
+    });
 });
