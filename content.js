@@ -55,10 +55,15 @@ document.addEventListener("submit", (event) => {
         data[key] = value;
     });
 
+    // Ask the user for missing data
+    const company = data.company || prompt("Enter the company name for this job application:");
+    const jobTitle = data.jobTitle || prompt("Enter the job title for this application:");
+
+
     // Prepare job application data
     const applicationData = {
-        company: data.company || "Unknown Company",
-        jobTitle: data.jobTitle || "Unknown Job Title",
+        company: company || "Unknown Company",
+        jobTitle: jobTitle || "Unknown Job Title",
         dateApplied: new Date().toISOString().split("T")[0], // Current date
         status: "Pending", // Default status
     };
