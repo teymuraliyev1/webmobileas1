@@ -45,6 +45,28 @@ function applyMappingsToForm(mappings, linkedinData) {
     });
 }
 
+document.addEventListener("submit", (event) => {
+    const form = event.target;
+
+    // Collect all form fields and their values
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+
+    // Prepare job application data
+    const applicationData = {
+        company: data.company || "Unknown Company",
+        jobTitle: data.jobTitle || "Unknown Job Title",
+        dateApplied: new Date().toISOString().split("T")[0], // Current date
+        status: "Pending", // Default status
+    };
+
+    // Save the application data
+    chrome.runtime.sendMessage({ action: "trackJobApplication", data: applicationData });
+});
+
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "extractLinkedInData") {
