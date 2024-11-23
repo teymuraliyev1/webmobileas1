@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (input) {
                         const key = columnOrder[i]; // Use fixed column order
                         updatedApplication[key] = input.value;
+                        input.disabled = true; 
                     }
                 }
             });
