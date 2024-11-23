@@ -23,12 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function addApplicationRow(application, index) {
+        const columnOrder = ["company", "jobTitle", "dateApplied", "status"]; // Fixed column order
         const row = document.createElement("tr");
         row.setAttribute("data-index", index);
 
-        Object.keys(application).forEach((key) => {
+        columnOrder.forEach((key) => {
             const cell = document.createElement("td");
-            const value = application[key];
+            const value = application[key] || ""; // Default to empty if key is missing
 
             switch (key) {
                 case "status":
@@ -52,8 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     break;
                 default:
                     const input = document.createElement("textarea");
-                    input.type = "text";
-                    input.value = value || ""; // Ensure no undefined values
+                    input.value = value;
                     input.disabled = true;
                     cell.appendChild(input);
             }
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const editButton = document.createElement("button");
         editButton.textContent = "Edit";
-        editButton.addEventListener("click", () => toggleEdit(row, editButton));
+        editButton.addEventListener("click", () => toggleEdit(row, application, editButton));
         actionsCell.appendChild(editButton);
 
         const deleteButton = document.createElement("button");
@@ -76,25 +76,31 @@ document.addEventListener("DOMContentLoaded", () => {
         tableBody.appendChild(row);
     }
 
-    function toggleEdit(row, editButton) {
-        const inputsAndSelects = row.querySelectorAll("input, select");
+    function toggleEdit(row, application, editButton) {
+        const columnOrder = ["company", "jobTitle", "dateApplied", "status"]; // Ensure consistent order
+        const cells = row.querySelectorAll("td");
         const isEditing = editButton.textContent === "Save";
-
-        inputsAndSelects.forEach((element) => {
-            element.disabled = isEditing; // Toggle enabled/disabled
-        });
 
         if (isEditing) {
             const updatedApplication = {};
-            inputsAndSelects.forEach((element, i) => {
-                const key = ["company", "jobTitle", "dateApplied", "status"][i];
-                updatedApplication[key] = element.value;
+            cells.forEach((cell, i) => {
+                if (i < columnOrder.length) {
+                    const input = cell.querySelector("input, select, textarea");
+                    if (input) {
+                        const key = columnOrder[i]; // Use fixed column order
+                        updatedApplication[key] = input.value;
+                    }
+                }
             });
 
             const index = row.getAttribute("data-index");
             saveEditedApplication(updatedApplication, index);
             editButton.textContent = "Edit";
         } else {
+            cells.forEach((cell) => {
+                const input = cell.querySelector("input, select, textarea");
+                if (input) input.disabled = false;
+            });
             editButton.textContent = "Save";
         }
     }
