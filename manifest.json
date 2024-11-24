@@ -28,7 +28,14 @@
       ]
     }
   ],
-  "chrome_url_overrides": {
-    "newtab": "dashboard.html"
-  }
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dashboard.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }
