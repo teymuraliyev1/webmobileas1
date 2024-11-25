@@ -92,7 +92,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             jobTitle: jobTitle || "Unknown Job Title",
         });
     }
-    
+
     if (message.action === "saveFormForLater") {
         const inputs = document.querySelectorAll("input, textarea, select");
 
@@ -103,6 +103,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
 
         const formData = {};
+
         inputs.forEach((input) => {
             if ((input.name || input.id) && input.value !== undefined) {
                 const key = input.name || input.id;
@@ -112,21 +113,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
         });
 
-        chrome.storage.local.get(["savedForms"], (result) => {
-            const savedForms = result.savedForms || [];
-            savedForms.push(formData);
-            chrome.storage.local.set({ savedForms }, () => {
-                console.log("Form saved successfully:", formData);
-                sendResponse({ success: true });
+        formData.pageTitle = document.title;
+        if (Object.keys(formData).length > 1) {
+            chrome.storage.local.get(["savedForms"], (result) => {
+                const savedForms = result.savedForms || [];
+                savedForms.push(formData);
+                chrome.storage.local.set({ savedForms }, () => {
+                    console.log("Form saved successfully:", formData);
+                    sendResponse({ success: true });
+                });
             });
-        });
-
-        return true; 
+        } else {
+            sendResponse({ success: false });
+        }
+        return true;
     }
 
     if (message.action === "restoreForm" && message.form) {
         const formData = message.form;
         Object.entries(formData).forEach(([key, value]) => {
+            if (key === "pageTitle") return;
             const input = document.querySelector(`[name="${key}"], [id="${key}"]`);
             if (input) {
                 input.value = value;

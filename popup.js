@@ -259,21 +259,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    const savedFormsList = document.getElementById("saved-forms-list");
     // Load saved forms into the popup
     function loadSavedForms() {
         chrome.storage.local.get(["savedForms"], (result) => {
             const savedForms = result.savedForms || [];
+            const savedFormsList = document.getElementById("saved-forms-list");
             savedFormsList.innerHTML = "";
 
             savedForms.forEach((form, index) => {
                 const listItem = document.createElement("li");
-                listItem.textContent = `Form #${index + 1}`;
+                const title = form.pageTitle || "Untitled Page";
+                listItem.textContent = `Form #${index + 1} - ${title}`;
 
                 const restoreButton = document.createElement("button");
                 restoreButton.textContent = "Restore";
                 restoreButton.addEventListener("click", () => restoreForm(index));
                 listItem.appendChild(restoreButton);
+
+                const editButton = document.createElement("button");
+                editButton.textContent = "Edit";
+                editButton.addEventListener("click", () => editSavedForm(index, form));
+                listItem.appendChild(editButton);
 
                 const deleteButton = document.createElement("button");
                 deleteButton.textContent = "Delete";
@@ -306,4 +312,58 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function editSavedForm(index, form) {
+        const savedFormsContainer = document.getElementById("saved-forms-list");
+        savedFormsContainer.innerHTML = ""; // Clear the saved forms list
+
+        const editForm = document.createElement("div");
+        editForm.innerHTML = `
+            <h2>Edit Form #${index + 1} - ${form.pageTitle}</h2>
+            <div id="edit-form-fields"></div>
+            <button id="save-edits">Save Changes</button>
+            <button id="cancel-edit">Cancel</button>
+        `;
+
+        savedFormsContainer.appendChild(editForm);
+
+        // Populate the editable fields
+        const editFieldsContainer = document.getElementById("edit-form-fields");
+        Object.entries(form).forEach(([key, value]) => {
+            const fieldDiv = document.createElement("div");
+            fieldDiv.innerHTML = `
+                <label>${key}</label>
+                <input type="text" id="edit-${key}" value="${value}" />
+            `;
+            editFieldsContainer.appendChild(fieldDiv);
+        });
+
+        // Save Changes Button
+        document.getElementById("save-edits").addEventListener("click", () => {
+            const updatedForm = {};
+            Object.keys(form).forEach((key) => {
+                const input = document.getElementById(`edit-${key}`);
+                if (input) {
+                    updatedForm[key] = input.value;
+                }
+            });
+
+            chrome.storage.local.get(["savedForms"], (result) => {
+                const savedForms = result.savedForms || [];
+                savedForms[index] = updatedForm; // Update the form in storage
+                chrome.storage.local.set({ savedForms }, () => {
+                    alert("Form updated successfully!");
+                    const savedFormsContainer = document.getElementById("saved-forms-list");
+                    savedFormsContainer.innerHTML = "";
+                    loadSavedForms(); // Reload the list of forms
+                });
+            });
+        });
+
+        // Cancel Button
+        document.getElementById("cancel-edit").addEventListener("click", () => {
+            const savedFormsContainer = document.getElementById("saved-forms-list");
+            savedFormsContainer.innerHTML = ""; // Clear the edit form
+            loadSavedForms(); // Restore the saved forms list
+        });
+    }
 });
