@@ -92,4 +92,48 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             jobTitle: jobTitle || "Unknown Job Title",
         });
     }
+    
+    if (message.action === "saveFormForLater") {
+        const inputs = document.querySelectorAll("input, textarea, select");
+
+        if (!inputs || inputs.length === 0) {
+            console.error("No form fields found.");
+            sendResponse({ success: false });
+            return;
+        }
+
+        const formData = {};
+        inputs.forEach((input) => {
+            if ((input.name || input.id) && input.value !== undefined) {
+                const key = input.name || input.id;
+                formData[key] = input.value;
+            } else {
+                console.warn("Skipped input with no name or id:", input);
+            }
+        });
+
+        chrome.storage.local.get(["savedForms"], (result) => {
+            const savedForms = result.savedForms || [];
+            savedForms.push(formData);
+            chrome.storage.local.set({ savedForms }, () => {
+                console.log("Form saved successfully:", formData);
+                sendResponse({ success: true });
+            });
+        });
+
+        return true; 
+    }
+
+    if (message.action === "restoreForm" && message.form) {
+        const formData = message.form;
+        Object.entries(formData).forEach(([key, value]) => {
+            const input = document.querySelector(`[name="${key}"], [id="${key}"]`);
+            if (input) {
+                input.value = value;
+            } else {
+                console.warn(`No input found for key: ${key}`);
+            }
+        });
+        alert("Form restored!");
+    }
 });

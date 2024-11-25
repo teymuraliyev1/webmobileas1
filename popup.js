@@ -247,36 +247,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("save-for-later").addEventListener("click", () => {
-        const company = document.getElementById("company").value.trim();
-        const jobTitle = document.getElementById("job-title").value.trim();
-        const dateApplied = document.getElementById("date-applied").value;
-        const status = document.getElementById("status").value;
-
-        const savedForm = { company, jobTitle, dateApplied, status };
-
-        chrome.storage.local.get(["savedForms"], (result) => {
-            const savedForms = result.savedForms || [];
-            savedForms.push(savedForm); // Add the current form to saved forms
-            chrome.storage.local.set({ savedForms }, () => {
-                alert("Form saved for future use!");
-                loadSavedForms(); // Refresh the saved forms list
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.tabs.sendMessage(tabs[0].id, { action: "saveFormForLater" }, (response) => {
+                if (response?.success) {
+                    alert("Form saved successfully!");
+                    loadSavedForms();
+                } else {
+                    alert("No form detected on this page.");
+                }
             });
         });
     });
 
+    const savedFormsList = document.getElementById("saved-forms-list");
+    // Load saved forms into the popup
     function loadSavedForms() {
         chrome.storage.local.get(["savedForms"], (result) => {
             const savedForms = result.savedForms || [];
-            const list = document.getElementById("saved-forms-list");
-            list.innerHTML = ""; // Clear the list
+            savedFormsList.innerHTML = "";
 
             savedForms.forEach((form, index) => {
                 const listItem = document.createElement("li");
-                listItem.textContent = `Company: ${form.company}, Job Title: ${form.jobTitle}, Date: ${form.dateApplied}, Status: ${form.status}`;
+                listItem.textContent = `Form #${index + 1}`;
 
                 const restoreButton = document.createElement("button");
                 restoreButton.textContent = "Restore";
-                restoreButton.addEventListener("click", () => restoreForm(form));
+                restoreButton.addEventListener("click", () => restoreForm(index));
                 listItem.appendChild(restoreButton);
 
                 const deleteButton = document.createElement("button");
@@ -284,8 +280,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 deleteButton.addEventListener("click", () => deleteSavedForm(index));
                 listItem.appendChild(deleteButton);
 
-                list.appendChild(listItem);
+                savedFormsList.appendChild(listItem);
             });
         });
     }
+
+    // Restore a saved form
+    function restoreForm(index) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.storage.local.get(["savedForms"], (result) => {
+                const savedForms = result.savedForms || [];
+                if (savedForms[index]) {
+                    chrome.tabs.sendMessage(tabs[0].id, { action: "restoreForm", form: savedForms[index] });
+                }
+            });
+        });
+    }
+
+    // Delete a saved form
+    function deleteSavedForm(index) {
+        chrome.storage.local.get(["savedForms"], (result) => {
+            const savedForms = result.savedForms || [];
+            savedForms.splice(index, 1);
+            chrome.storage.local.set({ savedForms }, loadSavedForms);
+        });
+    }
+
 });
