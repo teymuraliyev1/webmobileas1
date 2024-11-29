@@ -172,13 +172,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("send-email").addEventListener("click", () => {
         chrome.storage.local.get(null, (data) => {
-            const jsonData = JSON.stringify(data, null, 2);
-            const blob = new Blob([jsonData], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
+            const formattedData = JSON.stringify(data, null, 2);
 
-            // Create an email body with the data (if small) or use it as an attachment link
-            const mailtoLink = `mailto:?subject=Form Data Export&body=Your exported form data is attached. Download from this link: ${url}`;
+            const maxEmailBodyLength = 500; 
+            let body;
 
+            if (formattedData.length > maxEmailBodyLength) {
+                // Truncate data if it's too long
+                const truncatedData = formattedData.substring(0, 500) + "\n\n[Data truncated: too long to include]";
+                body = `Here is your exported form data (truncated):\n\n${truncatedData}\n\nPlease export the data as a file for the complete dataset.`;
+            } else {
+                // Include full data if within the limit
+                body = `Here is your exported form data:\n\n${formattedData}`;
+            }
+
+            // Create the mailto link
+            const subject = encodeURIComponent("Exported Form Data");
+            const encodedBody = encodeURIComponent(body);
+            const mailtoLink = `mailto:?subject=${subject}&body=${encodedBody}`;
+
+            // Open the default email client
             window.location.href = mailtoLink;
         });
     });
