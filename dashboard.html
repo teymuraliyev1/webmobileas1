@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="dashboard.css">
     <title>Job Application Tracker</title>
 </head>
@@ -46,6 +45,16 @@
         <label for="import-data" id="import-data-label">Import Data</label>
         <input type="file" id="import-data" accept=".json" style="display: none;" />
         <button id="send-email">Send Data via Email</button>
+    </div>
+
+    <div id="cover-letter-container">
+        <textarea id="cover-letter-text"
+            placeholder="Click the button to generate a cover letter with Gemini API" disabled></textarea>
+        <div id="cover-letter-actions">
+            <button id="edit-coverletter">Edit</button>
+            <button id="save-coverletter" style="display: none;">Save</button>
+            <button id="create-coverletter">Create Cover Letter</button>
+        </div>
     </div>
 
     <script src="dashboard.js"></script>

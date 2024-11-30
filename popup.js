@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteProfileButton = document.getElementById("delete-profile-button");
 
     let currentProfile = "default";
+
     loadMappings()
     loadSavedForms();
 
@@ -18,11 +19,20 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.get(["profiles"], (result) => {
         const profiles = result.profiles || { default: [] };
         populateProfileSelector(Object.keys(profiles));
-        currentProfile = profileSelector.value || "default";
+        chrome.storage.local.get(["currentProfile"], (result) => {
+            currentProfile = result.currentProfile || "default";
+            profileSelector.value = currentProfile;
+            loadFieldsForProfile(currentProfile, profiles);
+        });
+
         loadFieldsForProfile(currentProfile, profiles);
     });
 
     addFieldButton.addEventListener("click", () => {
+        if (currentProfile === "default") {
+            alert("You cannot add fields to the default profile.");
+            return;
+        }
         const key = newKeyInput.value.trim();
         const value = newValueInput.value.trim();
         if (key && value) {
@@ -43,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     populateProfileSelector(Object.keys(profiles));
                     profileSelector.value = profileName;
                     currentProfile = profileName;
+                    chrome.storage.local.set({ currentProfile });
                     fieldsContainer.innerHTML = "";
                 });
             });
@@ -60,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
             chrome.storage.local.set({ profiles }, () => {
                 populateProfileSelector(Object.keys(profiles));
                 currentProfile = "default";
+                chrome.storage.local.set({ currentProfile });
                 profileSelector.value = currentProfile;
                 fieldsContainer.innerHTML = "";
                 loadFieldsForProfile(currentProfile, profiles);
@@ -69,11 +81,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     profileSelector.addEventListener("change", () => {
         currentProfile = profileSelector.value;
+        chrome.storage.local.set({ currentProfile });
+
         chrome.storage.local.get(["profiles"], (result) => {
             const profiles = result.profiles || {};
             fieldsContainer.innerHTML = "";
             loadFieldsForProfile(currentProfile, profiles);
         });
+
+        if (currentProfile === "default") {
+            addFieldButton.disabled = true;
+            newKeyInput.disabled = true;
+            newValueInput.disabled = true;
+        } else {
+            addFieldButton.disabled = false;
+            newKeyInput.disabled = false;
+            newValueInput.disabled = false;
+        }
+
     });
 
     function addFieldToUI(key, value) {
@@ -147,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const option = document.createElement("option");
             option.value = name;
             option.textContent = name;
+            if (name == "default") option.disabled = true
             profileSelector.appendChild(option);
         });
     }

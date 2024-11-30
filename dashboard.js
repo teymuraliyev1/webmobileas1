@@ -7,6 +7,11 @@ document.addEventListener("DOMContentLoaded", () => {
         applications.forEach((app, index) => addApplicationRow(app, index));
     });
 
+    chrome.storage.local.get(["currentProfile", "profiles"], (res) => {
+        currentFields = res.profiles[res.currentProfile]
+        document.getElementById("cover-letter-text").innerHTML = currentFields.find(item => item.key == "coverLetter").value
+    })
+
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
@@ -174,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chrome.storage.local.get(null, (data) => {
             const formattedData = JSON.stringify(data, null, 2);
 
-            const maxEmailBodyLength = 500; 
+            const maxEmailBodyLength = 500;
             let body;
 
             if (formattedData.length > maxEmailBodyLength) {
@@ -196,4 +201,99 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    document.getElementById("create-coverletter").addEventListener("click", () => {
+        let currentFields
+        chrome.storage.local.get(["currentProfile", "profiles"], (res) => {
+            currentFields = res.profiles[res.currentProfile]
+            let payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": `Create me a cover letter with this data ${JSON.stringify(currentFields)}`
+                            }
+                        ]
+                    }
+                ]
+            }
+
+            sendJsonToGoogleAI(payload)
+                .then(response => {
+                    let responseText = response.candidates[0].content.parts[0].text
+                    document.getElementById("cover-letter-text").innerHTML = responseText
+
+                    const updatedFields = [...currentFields, { key: "coverLetter", value: responseText }];
+                    res.profiles[res.currentProfile] = updatedFields;
+
+                    chrome.storage.local.set({ profiles: res.profiles }, () => {
+                        alert("Cover letter stored successfully!");
+                    });
+                })
+                .catch(error => console.error('API Call Failed:', error));
+        })
+    })
+
+    const coverLetterText = document.getElementById("cover-letter-text");
+    const editButton = document.getElementById("edit-coverletter");
+    const saveButton = document.getElementById("save-coverletter");
+    document.getElementById("edit-coverletter").addEventListener("click", () => {
+
+        coverLetterText.disabled = false;
+        editButton.style.display = "none";
+        saveButton.style.display = "inline";
+    });
+
+    document.getElementById("save-coverletter").addEventListener("click", () => {
+        const newCoverLetter = coverLetterText.value.trim();
+
+        // Save the updated cover letter to local storage
+        chrome.storage.local.get(["currentProfile", "profiles"], (res) => {
+            const profiles = res.profiles || {};
+            const currentProfile = res.currentProfile;
+
+            if (profiles[currentProfile]) {
+                const updatedFields = profiles[currentProfile].map(field =>
+                    field.key === "coverLetter" ? { key: "coverLetter", value: newCoverLetter } : field
+                );
+
+                profiles[currentProfile] = updatedFields;
+
+                chrome.storage.local.set({ profiles }, () => {
+                    alert("Cover letter updated successfully!");
+                });
+            }
+        });
+
+        coverLetterText.disabled = true;
+        editButton.style.display = "inline";
+        saveButton.style.display = "none";
+    });
+
 });
+
+async function sendJsonToGoogleAI(requestBody) {
+    const apiKey = "AIzaSyB-rCUjE8hrGz-ypbr8ZI9dgC8BAkCh9tc"
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+        }
+
+        const responseData = await response.json();
+
+        return responseData;
+    } catch (error) {
+        console.error('Error sending JSON to API:', error);
+        throw error;
+    }
+}
