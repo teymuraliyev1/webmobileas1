@@ -151,10 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const extractButton = document.createElement("button");
-    extractButton.textContent = "Extract from LinkedIn";
-    extractButton.style.marginTop = "10px";
-    document.body.appendChild(extractButton);
+    const extractButton = document.getElementById("extractLinkedin");
 
     extractButton.addEventListener("click", () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

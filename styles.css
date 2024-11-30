@@ -1,64 +1,225 @@
 body {
   font-family: Arial, sans-serif;
   margin: 0;
-  padding: 10px;
-  width: 500px;
-}
-input,
-button {
-  margin: 5px 0;
-  padding: 5px;
-  width: 100%;
+  padding: 15px;
+  background-color: #f9f9f9;
   box-sizing: border-box;
+  max-width: 600px;
 }
+
+/* Buttons */
+button {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+  margin: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+  background-color: #d6d6d6;
+  cursor: not-allowed;
+}
+
+/* Headings */
+h2, h3 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.profile-section select {
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Fields Container */
+#fields-container {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  margin-bottom: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 .field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.field input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.field button {
+  flex-shrink: 0;
+}
+
+/* Mapping Section */
+.mapping-section {
+  margin-bottom: 20px;
+}
+
+#mapping-container {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.mapping {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mapping select,
+.mapping input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.mapping button {
+  flex-shrink: 0;
+}
+
+/* Mapping Items */
+.mapping-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f7f7f7;
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.mapping-item button {
+  background-color: #ccb1b4;
+  font-size: 0.8rem;
+  padding: 5px 8px;
+}
+
+.mapping-item button:hover {
+  background-color: #a71d2a;
+}
+
+/* Saved Forms Section */
+#saved-forms-container {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+#saved-forms-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#saved-forms-list li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.field input {
-  margin-right: 5px;
+
+#saved-forms-list li:last-child {
+  border-bottom: none;
 }
 
-.mapping-item {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  align-items: center;
+#saved-forms-list button {
+  margin-left: 5px;
+  font-size: 0.8rem;
+  padding: 5px 8px;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-table {
+/* Autofill and Save Buttons */
+#autofillButton, #save-for-later {
+  display: block;
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
+  margin: 10px 0;
+  padding: 10px 15px;
+  font-size: 1rem;
 }
 
-table th,
-table td {
-  border: 1px solid #ccc;
+#save-for-later {
+  background-color: #28a745;
+}
+
+#save-for-later:hover {
+  background-color: #218838;
+}
+
+/* Extract Button */
+button#extractButton {
+  display: block;
+  margin: 10px auto;
   padding: 10px;
-  text-align: left;
+  font-size: 1rem;
+  background-color: #ffc107;
+  color: #333;
+  border-radius: 4px;
 }
 
-table th {
-  background-color: #f4f4f4;
+button#extractButton:hover {
+  background-color: #e0a800;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 400px;
-  margin: 0 auto;
+/* Edit Form Section */
+#edit-form-fields div {
+  margin-bottom: 10px;
 }
 
-form input,
-form select,
-form button {
-  padding: 10px;
-  font-size: 16px;
+#edit-form-fields label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: #555;
 }
+
+#edit-form-fields input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+

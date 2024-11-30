@@ -1,4 +1,3 @@
-/* General reset and styling */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -31,7 +30,7 @@ h1, h2 {
 
 .job-application {
     flex: 2;
-    min-width: 60%; /* Ensure enough space for the table */
+    min-width: 60%;
 }
 
 #data-transfer-section {
