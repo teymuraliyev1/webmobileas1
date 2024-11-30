@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example Job Application Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        form div {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Example Job Application Form</h1>
+    <form id="job-application-form">
+        <!-- Text Inputs -->
+        <div>
+            <label for="full-name">Full Name</label>
+            <input type="text" id="full-name" name="fullName" placeholder="Enter your full name" required>
+        </div>
+        <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+        <div>
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" name="phone" placeholder="Enter your phone number">
+        </div>
+
+        <!-- Dropdown -->
+        <div>
+            <label for="position">Position Applying For</label>
+            <select id="position" name="position">
+                <option value="" disabled selected>Select a position</option>
+                <option value="software-engineer">Software Engineer</option>
+                <option value="data-analyst">Data Analyst</option>
+                <option value="project-manager">Project Manager</option>
+            </select>
+        </div>
+
+        <!-- Radio Buttons -->
+        <div>
+            <label>Are you willing to relocate?</label>
+            <input type="radio" id="relocate-yes" name="relocate" value="yes">
+            <label for="relocate-yes">Yes</label>
+            <input type="radio" id="relocate-no" name="relocate" value="no">
+            <label for="relocate-no">No</label>
+        </div>
+
+        <!-- Checkboxes -->
+        <div>
+            <label>Skills</label>
+            <input type="checkbox" id="skill-js" name="skills" value="JavaScript">
+            <label for="skill-js">JavaScript</label>
+            <input type="checkbox" id="skill-python" name="skills" value="Python">
+            <label for="skill-python">Python</label>
+            <input type="checkbox" id="skill-java" name="skills" value="Java">
+            <label for="skill-java">Java</label>
+        </div>
+
+        <!-- Text Area -->
+        <div>
+            <label for="cover-letter">Cover Letter</label>
+            <textarea id="cover-letter" name="coverLetter" rows="5" placeholder="Write your cover letter here..."></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+            <button type="submit">Submit Application</button>
+        </div>
+    </form>
+</body>
+
+</html>
