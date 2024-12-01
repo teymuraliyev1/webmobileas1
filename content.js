@@ -1,3 +1,8 @@
+// Function to extract LinkedIn data
+// **Source**: OpenAI Assistance  
+// OpenAI. (2023, October 23). ChatGPT (Sep 25, 2023 version) [Large language model].  
+// [https://chat.openai.com/chat](https://chat.openai.com/chat)  
+// Prompt: "Provide a function to scrape LinkedIn profile data using JavaScript."
 function extractLinkedInData() {
     const data = {};
 
@@ -25,6 +30,10 @@ function extractLinkedInData() {
     return data;
 }
 
+// Function to map LinkedIn data to a form
+// **Source**: MDN Web Docs  
+// MDN Web Docs: Web Storage API.  
+// [https://developer.mozilla.org/en-US/docs/Web/API/Storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage)
 function applyMappingsToForm(mappings, linkedinData) {
     mappings.forEach(({ linkedinField, formFieldName }) => {
         const linkedInFieldData = linkedinData.find(({ key }) => key === linkedinField);
@@ -72,7 +81,10 @@ document.addEventListener("submit", (event) => {
     chrome.runtime.sendMessage({ action: "trackJobApplication", data: applicationData });
 });
 
-
+// Chrome runtime message listener
+// **Source**: Chrome Extension Development  
+// Google Chrome Developers Documentation.  
+// [https://developer.chrome.com/docs/extensions/](https://developer.chrome.com/docs/extensions/)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "extractLinkedInData") {
         const data = extractLinkedInData();

@@ -2,16 +2,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("application-form");
     const tableBody = document.getElementById("application-table").querySelector("tbody");
 
+    // Load existing applications from local storage
+    // **Source**: MDN Web Docs: Web Storage API.
+    // [https://developer.mozilla.org/en-US/docs/Web/API/Storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage)
     chrome.storage.local.get(["applications"], (result) => {
         const applications = result.applications || [];
         applications.forEach((app, index) => addApplicationRow(app, index));
     });
 
+    // Load current profile and populate cover letter
     chrome.storage.local.get(["currentProfile", "profiles"], (res) => {
-        currentFields = res.profiles[res.currentProfile]
-        document.getElementById("cover-letter-text").innerHTML = currentFields.find(item => item.key == "coverLetter").value
-    })
+        const currentFields = res.profiles[res.currentProfile];
+        document.getElementById("cover-letter-text").innerHTML = currentFields.find(item => item.key === "coverLetter").value;
+    });
 
+    // Handle form submission for adding applications
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
@@ -21,20 +26,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const status = document.getElementById("status").value;
 
         const application = { company, jobTitle, dateApplied, status };
-        console.log(application)
         addApplicationRow(application, tableBody.children.length);
         saveApplicationToStorage(application);
         form.reset();
     });
 
+    // Add a row to the application table
     function addApplicationRow(application, index) {
-        const columnOrder = ["company", "jobTitle", "dateApplied", "status"]; // Fixed column order
+        const columnOrder = ["company", "jobTitle", "dateApplied", "status"];
         const row = document.createElement("tr");
         row.setAttribute("data-index", index);
 
         columnOrder.forEach((key) => {
             const cell = document.createElement("td");
-            const value = application[key] || ""; // Default to empty if key is missing
+            const value = application[key] || "";
 
             switch (key) {
                 case "status":
@@ -66,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const actionsCell = document.createElement("td");
-
         const editButton = document.createElement("button");
         editButton.textContent = "Edit";
         editButton.addEventListener("click", () => toggleEdit(row, application, editButton));
@@ -81,8 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tableBody.appendChild(row);
     }
 
+    // Toggle edit mode for a row
     function toggleEdit(row, application, editButton) {
-        const columnOrder = ["company", "jobTitle", "dateApplied", "status"]; // Ensure consistent order
+        const columnOrder = ["company", "jobTitle", "dateApplied", "status"];
         const cells = row.querySelectorAll("td");
         const isEditing = editButton.textContent === "Save";
 
@@ -92,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (i < columnOrder.length) {
                     const input = cell.querySelector("input, select, textarea");
                     if (input) {
-                        const key = columnOrder[i]; // Use fixed column order
+                        const key = columnOrder[i];
                         updatedApplication[key] = input.value;
                         input.disabled = true;
                     }
@@ -111,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Save edited application to storage
     function saveEditedApplication(updatedApplication, index) {
         chrome.storage.local.get(["applications"], (result) => {
             const applications = result.applications || [];
@@ -119,6 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Save new application to storage
     function saveApplicationToStorage(application) {
         chrome.storage.local.get(["applications"], (result) => {
             const applications = result.applications || [];
@@ -127,6 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Delete an application from storage
     function deleteApplication(row, index) {
         row.remove();
         chrome.storage.local.get(["applications"], (result) => {
@@ -136,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Data transfer
+    // Export data to a JSON file
     document.getElementById("export-data").addEventListener("click", () => {
         chrome.storage.local.get(null, (data) => {
             const jsonData = JSON.stringify(data, null, 2);
@@ -153,6 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Import data from a JSON file
     document.getElementById("import-data").addEventListener("change", (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -164,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const mergedData = { ...currentData, ...importedData };
                         chrome.storage.local.set(mergedData, () => {
                             alert("Data imported successfully!");
-                            location.reload(); // Reload to reflect new data
+                            location.reload();
                         });
                     });
                 } catch (error) {
@@ -175,52 +184,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    document.getElementById("send-email").addEventListener("click", () => {
-        chrome.storage.local.get(null, (data) => {
-            const formattedData = JSON.stringify(data, null, 2);
-
-            const maxEmailBodyLength = 500;
-            let body;
-
-            if (formattedData.length > maxEmailBodyLength) {
-                // Truncate data if it's too long
-                const truncatedData = formattedData.substring(0, 500) + "\n\n[Data truncated: too long to include]";
-                body = `Here is your exported form data (truncated):\n\n${truncatedData}\n\nPlease export the data as a file for the complete dataset.`;
-            } else {
-                // Include full data if within the limit
-                body = `Here is your exported form data:\n\n${formattedData}`;
-            }
-
-            // Create the mailto link
-            const subject = encodeURIComponent("Exported Form Data");
-            const encodedBody = encodeURIComponent(body);
-            const mailtoLink = `mailto:?subject=${subject}&body=${encodedBody}`;
-
-            // Open the default email client
-            window.location.href = mailtoLink;
-        });
-    });
-
+    // Generate cover letter using Google Gemini API
+    // **Source**: Google Gemini API Documentation.
+    // [https://ai.google.dev/pricing#1_5flash](https://ai.google.dev/pricing#1_5flash)
     document.getElementById("create-coverletter").addEventListener("click", () => {
-        let currentFields
         chrome.storage.local.get(["currentProfile", "profiles"], (res) => {
-            currentFields = res.profiles[res.currentProfile]
-            let payload = {
-                "contents": [
+            const currentFields = res.profiles[res.currentProfile];
+            const payload = {
+                contents: [
                     {
-                        "parts": [
+                        parts: [
                             {
-                                "text": `Create me a cover letter with this data ${JSON.stringify(currentFields)}`
+                                text: `Create me a cover letter with this data: ${JSON.stringify(currentFields)}`
                             }
                         ]
                     }
                 ]
-            }
+            };
 
             sendJsonToGoogleAI(payload)
                 .then(response => {
-                    let responseText = response.candidates[0].content.parts[0].text
-                    document.getElementById("cover-letter-text").innerHTML = responseText
+                    const responseText = response.candidates[0].content.parts[0].text;
+                    document.getElementById("cover-letter-text").innerHTML = responseText;
 
                     const updatedFields = [...currentFields, { key: "coverLetter", value: responseText }];
                     res.profiles[res.currentProfile] = updatedFields;
@@ -230,70 +215,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                 })
                 .catch(error => console.error('API Call Failed:', error));
-        })
-    })
-
-    const coverLetterText = document.getElementById("cover-letter-text");
-    const editButton = document.getElementById("edit-coverletter");
-    const saveButton = document.getElementById("save-coverletter");
-    document.getElementById("edit-coverletter").addEventListener("click", () => {
-
-        coverLetterText.disabled = false;
-        editButton.style.display = "none";
-        saveButton.style.display = "inline";
+        });
     });
 
-    document.getElementById("save-coverletter").addEventListener("click", () => {
-        const newCoverLetter = coverLetterText.value.trim();
+    // Helper to send JSON to Google AI API
+    async function sendJsonToGoogleAI(requestBody) {
+        const apiKey = "AIzaSyB-rCUjE8hrGz-ypbr8ZI9dgC8BAkCh9tc";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-        // Save the updated cover letter to local storage
-        chrome.storage.local.get(["currentProfile", "profiles"], (res) => {
-            const profiles = res.profiles || {};
-            const currentProfile = res.currentProfile;
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
 
-            if (profiles[currentProfile]) {
-                const updatedFields = profiles[currentProfile].map(field =>
-                    field.key === "coverLetter" ? { key: "coverLetter", value: newCoverLetter } : field
-                );
-
-                profiles[currentProfile] = updatedFields;
-
-                chrome.storage.local.set({ profiles }, () => {
-                    alert("Cover letter updated successfully!");
-                });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
             }
-        });
 
-        coverLetterText.disabled = true;
-        editButton.style.display = "inline";
-        saveButton.style.display = "none";
-    });
-
-});
-
-async function sendJsonToGoogleAI(requestBody) {
-    const apiKey = "AIzaSyB-rCUjE8hrGz-ypbr8ZI9dgC8BAkCh9tc"
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Error sending JSON to API:', error);
+            throw error;
         }
-
-        const responseData = await response.json();
-
-        return responseData;
-    } catch (error) {
-        console.error('Error sending JSON to API:', error);
-        throw error;
     }
-}
+});

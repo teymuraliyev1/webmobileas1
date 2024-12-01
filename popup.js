@@ -13,10 +13,17 @@ document.addEventListener("DOMContentLoaded", () => {
     loadSavedForms();
 
     document.getElementById("open-dashboard").addEventListener("click", () => {
+        // **Source**: AI Assistance  
+        // OpenAI. (2023, October 23). ChatGPT (Sep 25, 2023 version) [Large language model].  
+        // [https://chat.openai.com/chat](https://chat.openai.com/chat)
+        // Prompt: "Provide a snippet for opening a new tab in a Chrome extension."
         chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
     });
 
     chrome.storage.local.get(["profiles"], (result) => {
+        // **Source**: Chrome Extension Development  
+        // Google Chrome Developers Documentation.  
+        // [https://developer.chrome.com/docs/extensions/](https://developer.chrome.com/docs/extensions/)
         const profiles = result.profiles || { default: [] };
         populateProfileSelector(Object.keys(profiles));
         chrome.storage.local.get(["currentProfile"], (result) => {
@@ -29,6 +36,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     addFieldButton.addEventListener("click", () => {
+        // **Source**: MDN Web Docs  
+        // Form Validation.  
+        // [https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation)
         if (currentProfile === "default") {
             alert("You cannot add fields to the default profile.");
             return;
@@ -46,6 +56,10 @@ document.addEventListener("DOMContentLoaded", () => {
     newProfileButton.addEventListener("click", () => {
         const profileName = prompt("Enter new profile name:");
         if (profileName) {
+            // **Source**: AI Assistance
+            // OpenAI. (2023, October 23). ChatGPT (Sep 25, 2023 version) [Large language model].  
+            // [https://chat.openai.com/chat](https://chat.openai.com/chat)
+            // Prompt: "How to dynamically create new objects in local storage using Chrome Extensions?"
             chrome.storage.local.get(["profiles"], (result) => {
                 const profiles = result.profiles || {};
                 profiles[profileName] = [];
@@ -101,6 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     });
 
+    // Helper function to add fields to UI
+    // **Source**: AI Assistance  
+    // OpenAI. (2023, October 23). ChatGPT (Sep 25, 2023 version) [Large language model].  
+    // [https://chat.openai.com/chat](https://chat.openai.com/chat)
+    // Prompt: "How to dynamically create input fields in JavaScript for a Chrome Extension?"
     function addFieldToUI(key, value) {
         const div = document.createElement("div");
         div.classList.add("field");
